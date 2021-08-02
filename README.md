@@ -1,9 +1,5 @@
 # VisionCamScan
 
-[![CI Status](https://img.shields.io/travis/anilsanto/VisionCamScan.svg?style=flat)](https://travis-ci.org/anilsanto/VisionCamScan)
-[![Version](https://img.shields.io/cocoapods/v/VisionCamScan.svg?style=flat)](https://cocoapods.org/pods/VisionCamScan)
-[![License](https://img.shields.io/cocoapods/l/VisionCamScan.svg?style=flat)](https://cocoapods.org/pods/VisionCamScan)
-[![Platform](https://img.shields.io/cocoapods/p/VisionCamScan.svg?style=flat)](https://cocoapods.org/pods/VisionCamScan)
 
 ## Example
 
