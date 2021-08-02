@@ -1,5 +1,4 @@
 import XCTest
-import VisionCamScan
 
 class Tests: XCTestCase {
     

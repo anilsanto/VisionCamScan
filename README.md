@@ -22,7 +22,7 @@ pod 'VisionCamScan'
 
 ## Author
 
-anilsanto, anil.s.ext@flydubai.com
+anilsanto, santoanil@gmail.com
 
 ## License
 
