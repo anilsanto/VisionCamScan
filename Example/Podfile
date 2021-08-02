@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '9.0'
+
+target 'VisionCamScan_Example' do
+  pod 'VisionCamScan', :path => '../'
+
+  target 'VisionCamScan_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
