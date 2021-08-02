@@ -20,6 +20,15 @@ it, simply add the following line to your Podfile:
 pod 'VisionCamScan'
 ```
 
+Add the following keys to your Info.plist file:
+
+NSCameraUsageDescription - describe why your app needs access to the camera. This is called Privacy - Camera Usage Description in the visual editor.
+
+Or in text format add the key:
+
+<key>NSCameraUsageDescription</key>
+<string>Used to demonstrate image picker plugin</string>
+
 ## Author
 
 anilsanto, santoanil@gmail.com
