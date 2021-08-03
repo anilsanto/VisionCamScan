@@ -21,6 +21,7 @@ let supportedCodeTypes = [AVMetadataObject.ObjectType.upce,
 public enum ScannerMode {
     case card
     case barcode
+    case MRZcode
 }
 
 public struct ScannerError: LocalizedError {

@@ -114,7 +114,7 @@ final class CameraView: UIView {
             delegate?.didError(with: ScannerError(kind: .cameraSetup))
             return
         }
-
+        
         do {
             let deviceInput = try AVCaptureDeviceInput(device: videoDevice)
             session.canAddInput(deviceInput)
@@ -123,7 +123,7 @@ final class CameraView: UIView {
             delegate?.didError(with: ScannerError(kind: .cameraSetup, underlyingError: error))
         }
         switch  self.mode{
-        case .card:
+        case .card,.MRZcode:
             let videoOutput = AVCaptureVideoDataOutput()
             videoOutput.alwaysDiscardsLateVideoFrames = true
             videoOutput.setSampleBufferDelegate(self, queue: sampleBufferQueue)
@@ -147,6 +147,7 @@ final class CameraView: UIView {
             
             captureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
             captureMetadataOutput.metadataObjectTypes = supportedCodeTypes
+        
         }
         
         session.commitConfiguration()
@@ -167,7 +168,7 @@ final class CameraView: UIView {
 
         //  culcurate cutoutted frame
         let cuttedWidth: CGFloat = bounds.width - 40.0
-        let cuttedHeight: CGFloat = cuttedWidth * CreditCard.heightRatioAgainstWidth
+        let cuttedHeight: CGFloat = cuttedWidth * heightRatio()
 
         let centerVertical = (bounds.height / 2.0)
         let cuttedY: CGFloat = centerVertical - (cuttedHeight / 2.0)
@@ -200,12 +201,23 @@ final class CameraView: UIView {
         let acutualImageRatioAgainstVisibleSize = imageWidth / bounds.width
         let interestX = cuttedRect.origin.x * acutualImageRatioAgainstVisibleSize
         let interestWidth = cuttedRect.width * acutualImageRatioAgainstVisibleSize
-        let interestHeight = interestWidth * CreditCard.heightRatioAgainstWidth
+        let interestHeight = interestWidth * heightRatio()
         let interestY = (imageHeight / 2.0) - (interestHeight / 2.0)
         regionOfInterest = CGRect(x: interestX,
                                   y: interestY,
                                   width: interestWidth,
                                   height: interestHeight)
+    }
+    
+    func heightRatio()->CGFloat{
+        switch self.mode {
+        case .card:
+            return CreditCard.heightRatioAgainstWidth
+        case .MRZcode:
+            return 0.8
+        default:
+            return CreditCard.heightRatioAgainstWidth
+        }
     }
 }
 
@@ -273,3 +285,4 @@ extension CreditCard {
     // The aspect ratio of credit-card is Golden-ratio
     static let heightRatioAgainstWidth: CGFloat = 0.6180469716
 }
+

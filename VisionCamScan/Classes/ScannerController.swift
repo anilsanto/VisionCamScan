@@ -5,7 +5,7 @@ import UIKit
 
 @available(iOS 13, *)
 public protocol VisionCamScanViewControllerDelegate: AnyObject {
-    func scannerViewControllerDidCancel(_viewController: VisionCamScanViewController)
+    func scannerViewControllerDidCancel(_ viewController: VisionCamScanViewController)
     
     func scannerViewController(_ viewController: VisionCamScanViewController, didErrorWith error: ScannerError)
 
@@ -51,12 +51,14 @@ open class VisionCamScanViewController : UIViewController{
     
     override open func viewDidLoad() {
         super.viewDidLoad()
-        self.navigationController?.setNavigationBarHidden(false, animated: false)
-        let rightBarButtonItem =  UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
-        self.navigationItem.rightBarButtonItem = rightBarButtonItem
-        
         layoutSubView()
-        
+        if self.navigationController != nil {
+            layoutNavigationBar()
+        }
+        else{
+            layoutCloseButton()
+        }
+                
         AVCaptureDevice.authorize { [weak self] authoriazed in
             // This is on the main thread.
             guard let strongSelf = self else {
@@ -79,7 +81,7 @@ open class VisionCamScanViewController : UIViewController{
 @available(iOS 13, *)
 private extension VisionCamScanViewController {
     @objc func cancel(){
-        self.delegate?.scannerViewControllerDidCancel(_viewController: self)
+        self.delegate?.scannerViewControllerDidCancel(self)
     }
     
     func layoutSubView(){
@@ -94,6 +96,29 @@ private extension VisionCamScanViewController {
             cameraView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             cameraView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             cameraView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+    }
+    
+    func layoutNavigationBar(){
+        self.navigationController?.setNavigationBarHidden(false, animated: false)
+        let rightBarButtonItem =  UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
+        self.navigationItem.rightBarButtonItem = rightBarButtonItem
+    }
+    
+    func layoutCloseButton(){
+        let closeButton = UIButton()
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(closeButton)
+        closeButton.setTitle("X", for: .normal)
+        closeButton.setTitleColor(.white, for: .normal)
+        closeButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 22)
+        closeButton.addTarget(self, action: #selector(self.cancel), for: .touchUpInside)
+        
+        NSLayoutConstraint.activate([
+            closeButton.topAnchor.constraint(equalTo: view.topAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            closeButton.heightAnchor.constraint(equalToConstant: 40),
+            closeButton.widthAnchor.constraint(equalToConstant: 40)
         ])
     }
 }
@@ -133,6 +158,13 @@ extension VisionCamScanViewController : ImageAnalyzerProtocol{
                 guard let strongSelf = self else { return }
                 strongSelf.cameraView?.stopSession()
                 strongSelf.delegate?.scannerViewController(strongSelf, didFinishWith: card)
+            }
+        }
+        else if let data = result as? MRZData {
+            DispatchQueue.main.async { [weak self] in
+                guard let strongSelf = self else { return }
+                strongSelf.cameraView?.stopSession()
+                strongSelf.delegate?.scannerViewController(strongSelf, didFinishWith: data)
             }
         }
     }

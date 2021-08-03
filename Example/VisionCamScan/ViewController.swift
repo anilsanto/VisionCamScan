@@ -12,19 +12,26 @@ import VisionCamScan
 #endif
 
 class ViewController: UIViewController, VisionCamScanViewControllerDelegate {
+    
+    @IBOutlet weak var scan: UIButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        
+    }
+    
+    @IBAction func scanAction(_ sender: Any) {
         if #available(iOS 13, *) {
-            let controller = VisionCamScanViewController(with: self, mode: .card, title: "Card Scanner")
+            let controller = VisionCamScanViewController(with: self, mode: .MRZcode, title: "Card Scanner")
             self.present(controller, animated: true, completion: nil)
-//            self.navigationController?.pushViewController(controller, animated: true)
         }
     }
     
     @available(iOS 13, *)
-    func scannerViewControllerDidCancel(_viewController: VisionCamScanViewController) {
-        
+    func scannerViewControllerDidCancel(_ viewController: VisionCamScanViewController) {
+        viewController.dismiss(animated: true, completion: nil)
     }
     
     @available(iOS 13, *)
@@ -34,15 +41,21 @@ class ViewController: UIViewController, VisionCamScanViewControllerDelegate {
     
     @available(iOS 13, *)
     func scannerViewController<T>(_ viewController: VisionCamScanViewController, didFinishWith data: T) {
+        viewController.dismiss(animated: true, completion: nil)
         if let card = data as? CreditCard {
             print(card.name)
             print(card.number)
             print(card.expireDate)
+            let alert = UIAlertController(title: card.name ?? "",
+                                          message: card.number ,
+                                          preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .default))
+            self.present(alert, animated: true)
         }
         else{
             print(data)
         }
-        viewController.dismiss(animated: true, completion: nil)
+        
     }
     
     override func didReceiveMemoryWarning() {
