@@ -1,5 +1,6 @@
 # VisionCamScan
 
+A library to scan info using the device camera and on-device machine learning
 
 ## Example
 
