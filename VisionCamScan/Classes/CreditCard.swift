@@ -17,6 +17,7 @@ public struct CreditCard {
     ///
     public var expireDate: DateComponents?
     
+    @available(iOS 13, *)
     mutating func parse(results: [VNRecognizedTextObservation]){
         let creditCardNumber: Regex = #"(?:\d[ -]*?){13,16}"#
         let month: Regex = #"(\d{2})\/\d{2}"#
