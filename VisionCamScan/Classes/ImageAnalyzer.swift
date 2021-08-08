@@ -115,8 +115,8 @@ final class ImageAnalyzer {
             else { continue }
             
             let string = candidate.string
-            print(string)
-            print(string.count)
+//            print(string)
+//            print(string.count)
             mrzScanData.checkMrz(string: string)
         }
         if !mrzScanData.captureFirst.isEmpty {
