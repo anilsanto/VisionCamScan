@@ -98,9 +98,6 @@ public struct MRZData {
                 let str = docNum.replacingOccurrences(of: "<", with: "")
                 self.documentNumber = str
             }
-            else{
-                
-            }
         }
         let second = results[1]
         if !second.isEmpty {
@@ -170,7 +167,7 @@ public struct MRZData {
             self.dateOfBirth = parseDate(date: dob)
             
             let sex = getDataFromRange(string: second, start: 20, end: 21)
-            self.sex = sex
+            self.sex = ["M","F","<"].contains(sex) ? sex : nil
             
             //Date Of Expiry
             let dox = getDataFromRange(string: second, start: 21, end: 27)
