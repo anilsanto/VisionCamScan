@@ -86,19 +86,21 @@ public struct MRZData {
         if !first.isEmpty {
             //Document Code
             let docCode = getDataFromRange(string: first, start: 0, end: 2)
-            if docCode.count > 0 {
+            if docCode.count > 0,["A","I","C"].contains(docCode.first) {
                 self.documentCode = String(docCode.first ?? "I")
+                
+                //Issuing Country
+                let issState = getDataFromRange(string: first, start: 2, end: 5)
+                self.issuingCountry = issState
+                
+                //Document Number
+                let docNum = getDataFromRange(string: first, start: 5, end: 14)
+                let str = docNum.replacingOccurrences(of: "<", with: "")
+                self.documentNumber = str
             }
-            
-            //Issuing Country
-            let issState = getDataFromRange(string: first, start: 2, end: 5)
-            self.issuingCountry = issState
-            
-            //Document Number
-            let docNum = getDataFromRange(string: first, start: 5, end: 14)
-            let str = docNum.replacingOccurrences(of: "<", with: "")
-            self.documentNumber = str
-            
+            else{
+                
+            }
         }
         let second = results[1]
         if !second.isEmpty {
