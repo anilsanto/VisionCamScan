@@ -37,7 +37,7 @@ public struct CreditCard {
             let string = candidate.string
             let containsWordToSkip = wordsToSkip.contains { string.lowercased().contains($0) }
             if containsWordToSkip { continue }
-
+            print(string)
             if let cardNumber = creditCardNumber.firstMatch(in: string)?
                 .replacingOccurrences(of: " ", with: "")
                 .replacingOccurrences(of: "-", with: ""),self.number == nil {

@@ -102,19 +102,41 @@ final class CameraView: UIView {
             self?._setupCamera()
         }
     }
+    
+    func cameraWithPosition(_ position: AVCaptureDevice.Position) -> AVCaptureDevice?{
+        let deviceDescoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,.builtInDualCamera,.builtInDualWideCamera],
+                                                                              mediaType: .video,
+                                                                              position: position)
+
+        for device in deviceDescoverySession.devices {
+            print(device)
+        }
+        return nil
+    }
 
     private func _setupCamera() {
         let session = AVCaptureSession()
         session.beginConfiguration()
         session.sessionPreset = imageRatio.preset
-
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
-                                                        for: .video,
-                                                        position: .back) else {
+        cameraWithPosition(.back)
+        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
+            delegate?.didError(with: ScannerError(kind: .cameraSetup))
+            return
+        }
+        do {
+            try videoDevice.lockForConfiguration()
+        } catch {
+            // handle error
             delegate?.didError(with: ScannerError(kind: .cameraSetup))
             return
         }
         
+        
+        videoDevice.exposureMode = .continuousAutoExposure
+        videoDevice.focusMode = .continuousAutoFocus
+        videoDevice.whiteBalanceMode = .continuousAutoWhiteBalance
+//        videoDevice.flashMode = .on
+        videoDevice.unlockForConfiguration()
         do {
             let deviceInput = try AVCaptureDeviceInput(device: videoDevice)
             session.canAddInput(deviceInput)
@@ -127,7 +149,7 @@ final class CameraView: UIView {
             let videoOutput = AVCaptureVideoDataOutput()
             videoOutput.alwaysDiscardsLateVideoFrames = true
             videoOutput.setSampleBufferDelegate(self, queue: sampleBufferQueue)
-
+            videoOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as NSString) : NSNumber(value: kCVPixelFormatType_32BGRA)] as [String : Any]
             guard session.canAddOutput(videoOutput) else {
                 delegate?.didError(with: ScannerError(kind: .cameraSetup))
                 return
@@ -149,11 +171,12 @@ final class CameraView: UIView {
             captureMetadataOutput.metadataObjectTypes = supportedCodeTypes
         
         }
-        
+        session.automaticallyConfiguresCaptureDeviceForWideColor = true
         session.commitConfiguration()
 
         DispatchQueue.main.async { [weak self] in
             self?.videoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+            self?.videoPreviewLayer.contentsGravity = .resizeAspectFill
             self?.videoSession = session
             self?.startSession()
         }

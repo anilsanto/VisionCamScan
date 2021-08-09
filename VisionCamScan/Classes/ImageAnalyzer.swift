@@ -33,7 +33,14 @@ final class ImageAnalyzer {
 
     // MARK: - Vision-related
 
-    public lazy var request = VNRecognizeTextRequest(completionHandler: requestHandler)
+    public lazy var request: VNRecognizeTextRequest = {
+        let request = VNRecognizeTextRequest(completionHandler: requestHandler)
+        request.recognitionLevel = .accurate
+        request.recognitionLanguages = ["en-US", "en-GB"]
+        request.usesLanguageCorrection = false
+        return request
+    }()
+    
     func analyze(image: CGImage) {
         let requestHandler = VNImageRequestHandler(
             cgImage: image,
