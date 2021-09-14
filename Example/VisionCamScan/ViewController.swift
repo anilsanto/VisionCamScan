@@ -24,7 +24,7 @@ class ViewController: UIViewController, VisionCamScanViewControllerDelegate {
     
     @IBAction func scanAction(_ sender: Any) {
         if #available(iOS 13, *) {
-            let controller = VisionCamScanViewController(with: self, mode: .card, title: "Card Scanner")
+            let controller = VisionCamScanViewController(with: self, mode: .card, title: "Card Scanner",message:"Please place your card in the rectangle",warningTimeInterval: 5,warningMessage: "Scanning is taking time please try with another card.")
             self.present(controller, animated: true, completion: nil)
         }
     }

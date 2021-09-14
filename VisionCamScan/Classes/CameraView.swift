@@ -29,6 +29,30 @@ final class CameraView: UIView {
     private let maskLayerColor: UIColor
     private let maskLayerAlpha: CGFloat
     private let mode: ScannerMode
+    private let messageFont: UIFont
+    private let messageColor: UIColor
+    private let warningMessageFont: UIFont
+    private let warningMessageColor: UIColor
+    
+    private let warningTimeInterval: Float
+    
+    private let message: String?
+    private let warningMessage: String?
+    
+    private let messageLabel: UILabel = {
+        let lbl = UILabel()
+        lbl.numberOfLines = 0
+        lbl.textAlignment = .center
+        return lbl
+    }()
+    
+    private let warningMessageLabel: UILabel = {
+        let lbl = UILabel()
+        lbl.numberOfLines = 0
+        lbl.textAlignment = .center
+        return lbl
+    }()
+    
     // MARK: - Capture related
     private let captureSessionQueue = DispatchQueue(
         label: "com.santoanil.scanner.captureSessionQueue"
@@ -44,13 +68,27 @@ final class CameraView: UIView {
         frameStrokeColor: UIColor,
         maskLayerColor: UIColor,
         maskLayerAlpha: CGFloat,
-        mode: ScannerMode
+        mode: ScannerMode,
+        message: String? = nil,
+        messageFont: UIFont = UIFont.systemFont(ofSize: 25),
+        messageColor: UIColor = .white,
+        warningTimeInterval: Float = 5,
+        warningMessage: String? = nil,
+        warningMessageFont: UIFont = UIFont.systemFont(ofSize: 25),
+        warningMessageColor: UIColor = .white
     ) {
         self.mode = mode
         self.delegate = delegate
         self.frameStrokeColor = frameStrokeColor
         self.maskLayerColor = maskLayerColor
         self.maskLayerAlpha = maskLayerAlpha
+        self.message = message
+        self.messageFont = messageFont
+        self.messageColor = messageColor
+        self.warningMessage = warningMessage
+        self.warningMessageFont = warningMessageFont
+        self.warningMessageColor = warningMessageColor
+        self.warningTimeInterval = warningTimeInterval
         super.init(frame: .zero)
     }
 
@@ -230,6 +268,37 @@ final class CameraView: UIView {
                                   y: interestY,
                                   width: interestWidth,
                                   height: interestHeight)
+        
+        
+        messageLabel.removeFromSuperview()
+        
+        self.addSubview(messageLabel)
+        
+        let topY = interestY + interestHeight - 20
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+        messageLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: topY).isActive = true
+        messageLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 10).isActive = true
+        messageLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -10).isActive = true
+        
+        messageLabel.text = message
+        messageLabel.font = messageFont
+        messageLabel.textColor = messageColor
+        
+        warningMessageLabel.removeFromSuperview()
+        self.addSubview(warningMessageLabel)
+        
+        warningMessageLabel.translatesAutoresizingMaskIntoConstraints = false
+        warningMessageLabel.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 20).isActive = true
+        warningMessageLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 10).isActive = true
+        warningMessageLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -10).isActive = true
+        
+        warningMessageLabel.font = warningMessageFont
+        warningMessageLabel.textColor = warningMessageColor
+        
+        if self.warningMessage != nil {
+            self.perform(#selector(updateWarningMessage), with: nil, afterDelay: TimeInterval(warningTimeInterval))
+        }
+        
     }
     
     func heightRatio()->CGFloat{
@@ -241,6 +310,10 @@ final class CameraView: UIView {
         default:
             return CreditCard.heightRatioAgainstWidth
         }
+    }
+    
+    @objc func updateWarningMessage(){
+        warningMessageLabel.text = warningMessage
     }
 }
 

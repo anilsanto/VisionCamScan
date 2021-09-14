@@ -25,7 +25,17 @@ open class VisionCamScanViewController : UIViewController{
     
     private var analyzer: ImageAnalyzer?
     
-    convenience public init(with delegate: VisionCamScanViewControllerDelegate,mode: ScannerMode,title: String) {
+    convenience public init(with delegate: VisionCamScanViewControllerDelegate,
+                            mode: ScannerMode,
+                            title: String ,
+                            message: String? = nil,
+                            messageFont: UIFont = UIFont.systemFont(ofSize: 12),
+                            messageColor: UIColor = .white,
+                            warningTimeInterval: Float = 5,
+                            warningMessage: String? = nil,
+                            warningMessageFont: UIFont = UIFont.systemFont(ofSize: 25),
+                            warningMessageColor: UIColor = .white
+                            ) {
         self.init(nibName:nil, bundle:nil)
         self.scannerMode = mode
         self.delegate = delegate
@@ -35,7 +45,14 @@ open class VisionCamScanViewController : UIViewController{
             frameStrokeColor: self.cameraViewCreditCardFrameStrokeColor,
             maskLayerColor: self.cameraViewMaskLayerColor,
             maskLayerAlpha: self.cameraViewMaskAlpha,
-            mode: mode
+            mode: mode,
+            message: message,
+            messageFont: messageFont,
+            messageColor: messageColor,
+            warningTimeInterval: warningTimeInterval,
+            warningMessage: warningMessage,
+            warningMessageFont: warningMessageFont,
+            warningMessageColor: warningMessageColor
         )
         self.analyzer = ImageAnalyzer(mode: mode, delegate: self)
     }
