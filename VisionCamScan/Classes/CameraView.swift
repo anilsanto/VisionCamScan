@@ -156,8 +156,8 @@ final class CameraView: UIView {
         let session = AVCaptureSession()
         session.beginConfiguration()
         session.sessionPreset = imageRatio.preset
-        
-        guard let videoDevice = cameraWithPosition(.back) else {
+//        cameraWithPosition(.back)
+        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
             delegate?.didError(with: ScannerError(kind: .cameraSetup))
             return
         }
@@ -214,7 +214,7 @@ final class CameraView: UIView {
 
         DispatchQueue.main.async { [weak self] in
             self?.videoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-            self?.videoPreviewLayer.contentsGravity = CALayerContentsGravity.resizeAspectFill
+            self?.videoPreviewLayer.contentsGravity = .resizeAspectFill
             self?.videoSession = session
             self?.startSession()
         }
