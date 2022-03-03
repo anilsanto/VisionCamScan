@@ -274,7 +274,8 @@ final class CameraView: UIView {
         
         self.addSubview(messageLabel)
         
-        let topY = interestY + interestHeight - 20
+//        let topY = interestY + interestHeight - 20
+        let topY = cuttedY + cuttedHeight + 20
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: topY).isActive = true
         messageLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 10).isActive = true
@@ -355,23 +356,23 @@ extension CameraView: AVCaptureVideoDataOutputSampleBufferDelegate {
 @available(iOS 13, *)
 extension CameraView: AVCaptureMetadataOutputObjectsDelegate {
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
-            let metadataObj = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
-    //        let barCodeObject = vedioPreviewLayer?.transformedMetadataObject(for: metadataObj)
-            
-            if let barcodeData = metadataObj.stringValue {
-                if let delegate = delegate,delegate.didCaptureBarcode != nil{
-                    delegate.didCaptureBarcode?(barcodeData: barcodeData)
-                }
-                else{
-                    delegate?.didError(with: ScannerError(kind: .capture))
-                    delegate = nil
-                }
+        let metadataObj = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
+//        let barCodeObject = vedioPreviewLayer?.transformedMetadataObject(for: metadataObj)
+        
+        if let barcodeData = metadataObj.stringValue {
+            if let delegate = delegate,delegate.didCaptureBarcode != nil{
+                delegate.didCaptureBarcode?(barcodeData: barcodeData)
             }
             else{
                 delegate?.didError(with: ScannerError(kind: .capture))
                 delegate = nil
             }
         }
+        else{
+            delegate?.didError(with: ScannerError(kind: .capture))
+            delegate = nil
+        }
+    }
     
 }
 #endif
