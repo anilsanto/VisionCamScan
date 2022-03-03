@@ -1,0 +1,21 @@
+{
+  "name": "VisionCamScan",
+  "version": "1.1.0",
+  "summary": "A library to scan info using the device camera and on-device machine learning",
+  "homepage": "https://github.com/anilsanto/VisionCamScan",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "anilsanto": "santoanil@gmail.com"
+  },
+  "source": {
+    "git": "https://github.com/anilsanto/VisionCamScan.git",
+    "tag": "1.1.0"
+  },
+  "platforms": {
+    "ios": "11.0"
+  },
+  "source_files": "VisionCamScan/Classes/**/*"
+}

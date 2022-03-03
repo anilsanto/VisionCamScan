@@ -1,0 +1,16 @@
+PODS:
+  - VisionCamScan (1.1.0)
+
+DEPENDENCIES:
+  - VisionCamScan (from `../`)
+
+EXTERNAL SOURCES:
+  VisionCamScan:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  VisionCamScan: 06d69250ed5ed18a710be7759230419b10d42df7
+
+PODFILE CHECKSUM: 5d4d5541a263fd2bfe4916bbb257b8a6b142be8b
+
+COCOAPODS: 1.10.2

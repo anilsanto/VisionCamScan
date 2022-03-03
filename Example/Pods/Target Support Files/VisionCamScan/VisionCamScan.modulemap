@@ -1,0 +1,6 @@
+framework module VisionCamScan {
+  umbrella header "VisionCamScan-umbrella.h"
+
+  export *
+  module * { export * }
+}

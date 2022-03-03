@@ -43,9 +43,9 @@ class ViewController: UIViewController, VisionCamScanViewControllerDelegate {
     func scannerViewController<T>(_ viewController: VisionCamScanViewController, didFinishWith data: T) {
         viewController.dismiss(animated: true, completion: nil)
         if let card = data as? CreditCard {
-            print(card.name)
-            print(card.number)
-            print(card.expireDate)
+            print(card.name ?? "")
+            print(card.number ?? "")
+            print(card.expireDate ?? "")
             let alert = UIAlertController(title: card.name ?? "",
                                           message: card.number ,
                                           preferredStyle: .alert)

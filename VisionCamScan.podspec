@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'VisionCamScan'
-  s.version          = '1.2.0'
+  s.version          = '1.2.1'
   s.summary          = 'A library to scan info using the device camera and on-device machine learning'
 
   s.homepage         = 'https://github.com/anilsanto/VisionCamScan'
