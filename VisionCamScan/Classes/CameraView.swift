@@ -62,6 +62,9 @@ final class CameraView: UIView {
     private let sampleBufferQueue = DispatchQueue(
         label: "com.santoanil.scanner.sampleBufferQueue"
     )
+    
+    private var videoDevice: AVCaptureDevice?
+    private var exposureTargetOffsetContext = 0
 
     init(
         delegate: CameraViewDelegate,
@@ -97,7 +100,7 @@ final class CameraView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private let imageRatio: ImageRatio = .vga640x480
+    private let imageRatio: ImageRatio = .hd4K3840x2160
 
     // MARK: - Region of interest and text orientation
     /// Region of video data output buffer that recognition should be run on.
@@ -142,11 +145,11 @@ final class CameraView: UIView {
     }
     
     func cameraWithPosition(_ position: AVCaptureDevice.Position) -> AVCaptureDevice?{
-        let deviceDescoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,.builtInDualCamera,.builtInDualWideCamera],
+        let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,.builtInDualCamera,.builtInDualWideCamera],
                                                                               mediaType: .video,
                                                                               position: position)
 
-        for device in deviceDescoverySession.devices {
+        for device in deviceDiscoverySession.devices {
             print(device)
         }
         return nil
@@ -156,27 +159,64 @@ final class CameraView: UIView {
         let session = AVCaptureSession()
         session.beginConfiguration()
         session.sessionPreset = imageRatio.preset
-//        cameraWithPosition(.back)
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
+//        if session.canSetSessionPreset(.high) {
+//            session.sessionPreset = .high
+//        }
+        
+        if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
+            videoDevice = dualCameraDevice
+        } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
+            // If the back dual camera is not available, default to the back wide angle camera.
+            videoDevice = backCameraDevice
+        } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
+            /*
+             In some cases where users break their phones, the back wide angle camera is not available.
+             In this case, we should default to the front wide angle camera.
+             */
+            videoDevice = frontCameraDevice
+        }
+        
+        guard videoDevice != nil else {
             delegate?.didError(with: ScannerError(kind: .cameraSetup))
             return
         }
         do {
-            try videoDevice.lockForConfiguration()
+            try videoDevice!.lockForConfiguration()
         } catch {
             // handle error
             delegate?.didError(with: ScannerError(kind: .cameraSetup))
             return
         }
+//        if videoDevice!.activeFormat.isVideoHDRSupported == true {
+//            videoDevice!.automaticallyAdjustsVideoHDREnabled = false
+//            videoDevice!.isVideoHDREnabled = true
+//            print("device?.isVideoHDREnabled\(videoDevice!.isVideoHDREnabled)")
+//        }
+
+        if (videoDevice!.isFocusModeSupported(.continuousAutoFocus)) {
+            videoDevice!.focusMode = AVCaptureDevice.FocusMode.continuousAutoFocus
+            print("device?.focusMode\(videoDevice!.focusMode.rawValue)")
+            if (videoDevice!.isSmoothAutoFocusSupported) {
+                videoDevice!.isSmoothAutoFocusEnabled = true
+                print("device?.isSmoothAutoFocusEnabled\(videoDevice!.isSmoothAutoFocusEnabled)")
+            }
+        }
+
+        if (videoDevice!.isExposureModeSupported(.continuousAutoExposure)) {
+            videoDevice!.exposureMode = .continuousAutoExposure
+            print("device?.exposureMode\(videoDevice!.exposureMode.rawValue)")
+        }
+        if videoDevice!.isLowLightBoostSupported {
+            videoDevice?.automaticallyEnablesLowLightBoostWhenAvailable = true
+        }
+        if videoDevice!.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) {
+            videoDevice?.whiteBalanceMode = .continuousAutoWhiteBalance
+        }
+//        videoDevice!.addObserver(self, forKeyPath: "exposureTargetOffset", options: NSKeyValueObservingOptions.new, context: &exposureTargetOffsetContext)
         
-        
-        videoDevice.exposureMode = .continuousAutoExposure
-        videoDevice.focusMode = .continuousAutoFocus
-        videoDevice.whiteBalanceMode = .continuousAutoWhiteBalance
-//        videoDevice.flashMode = .on
-        videoDevice.unlockForConfiguration()
+        videoDevice!.unlockForConfiguration()
         do {
-            let deviceInput = try AVCaptureDeviceInput(device: videoDevice)
+            let deviceInput = try AVCaptureDeviceInput(device: videoDevice!)
             session.canAddInput(deviceInput)
             session.addInput(deviceInput)
         } catch {
@@ -187,7 +227,10 @@ final class CameraView: UIView {
             let videoOutput = AVCaptureVideoDataOutput()
             videoOutput.alwaysDiscardsLateVideoFrames = true
             videoOutput.setSampleBufferDelegate(self, queue: sampleBufferQueue)
-            videoOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as NSString) : NSNumber(value: kCVPixelFormatType_32BGRA)] as [String : Any]
+//            videoOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as NSString) : NSNumber(value: kCVPixelFormatType_32BGRA)] as [String : Any]
+            videoOutput.videoSettings = [
+                            kCVPixelBufferPixelFormatTypeKey as AnyHashable as! String: Int(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)
+                        ]
             guard session.canAddOutput(videoOutput) else {
                 delegate?.didError(with: ScannerError(kind: .cameraSetup))
                 return
@@ -217,6 +260,37 @@ final class CameraView: UIView {
             self?.videoPreviewLayer.contentsGravity = .resizeAspectFill
             self?.videoSession = session
             self?.startSession()
+        }
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if videoDevice == nil {
+            return
+        }
+        if keyPath == "exposureTargetOffset" {
+            let newExposureTargetOffset = change?[NSKeyValueChangeKey.newKey] as! Float
+            print("Offset is : \(newExposureTargetOffset)")
+
+            let currentISO = videoDevice?.iso
+            var biasISO = 0
+
+            //Assume 0,01 as our limit to correct the ISO
+            if newExposureTargetOffset > 0.3 { //decrease ISO
+                biasISO = -50
+            } else if newExposureTargetOffset < -0.3 { //increase ISO
+                biasISO = 50
+            }
+
+            if biasISO != Int(0) {
+                //Normalize ISO level for the current device
+                var newISO = currentISO! + Float(biasISO)
+                newISO = newISO > (videoDevice?.activeFormat.maxISO)! ? (videoDevice?.activeFormat.maxISO)! : newISO
+                newISO = newISO < (videoDevice?.activeFormat.minISO)! ? (videoDevice?.activeFormat.minISO)! : newISO
+
+                try? videoDevice?.lockForConfiguration()
+                videoDevice?.setExposureModeCustom(duration: AVCaptureDevice.currentExposureDuration, iso: newISO, completionHandler: nil)
+                videoDevice?.unlockForConfiguration()
+            }
         }
     }
 

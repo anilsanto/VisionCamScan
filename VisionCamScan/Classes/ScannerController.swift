@@ -25,6 +25,9 @@ open class VisionCamScanViewController : UIViewController{
     
     private var analyzer: ImageAnalyzer?
     
+    fileprivate var scannedCard: CreditCard!
+    fileprivate var scannedMRZCode: MRZData!
+    
     convenience public init(with delegate: VisionCamScanViewControllerDelegate,
                             mode: ScannerMode,
                             title: String ,
@@ -54,7 +57,9 @@ open class VisionCamScanViewController : UIViewController{
             warningMessageFont: warningMessageFont,
             warningMessageColor: warningMessageColor
         )
-        self.analyzer = ImageAnalyzer(mode: mode, delegate: self)
+        self.scannedCard = CreditCard(number: nil, name: nil, expireDate: nil)
+        self.scannedMRZCode = MRZData(mrzFormat: nil, documentCode: nil, issuingCountry: nil, lastName: nil, firstName: nil, documentNumber: nil, nationality: nil, dateOfBirth: nil, sex: nil, dateOfExpiry: nil)
+        self.analyzer = ImageAnalyzer(mode: mode, delegate: self,scannedCard: self.scannedCard,scannedMrzCode: self.scannedMRZCode)
     }
     
     override public init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
@@ -63,6 +68,8 @@ open class VisionCamScanViewController : UIViewController{
     
     required public init?(coder: NSCoder) {
         self.scannerMode = .card
+        self.scannedCard = CreditCard(number: nil, name: nil, expireDate: nil)
+        self.scannedMRZCode = MRZData(mrzFormat: nil, documentCode: nil, issuingCountry: nil, lastName: nil, firstName: nil, documentNumber: nil, nationality: nil, dateOfBirth: nil, sex: nil, dateOfExpiry: nil)
         super.init(coder: coder)
     }
     
@@ -92,6 +99,11 @@ open class VisionCamScanViewController : UIViewController{
     override open func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         cameraView?.setupRegionOfInterest()
+    }
+    
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+//        removeObserver(self.cameraView!, forKeyPath: "exposureTargetOffset")
     }
 }
 

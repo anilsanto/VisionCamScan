@@ -25,10 +25,14 @@ final class ImageAnalyzer {
 
     private var predictedCardInfo: [Candidate: PredictedCount] = [:]
     private var scannerMode: ScannerMode = .card
+    private var scannedCard: CreditCard?
+    private var scannedMrzCode: MRZData?
     private weak var delegate: ImageAnalyzerProtocol?
-    init(mode: ScannerMode,delegate: ImageAnalyzerProtocol) {
+    init(mode: ScannerMode,delegate: ImageAnalyzerProtocol,scannedCard: CreditCard? = nil,scannedMrzCode: MRZData? = nil) {
         self.delegate = delegate
         self.scannerMode = mode
+        self.scannedCard = scannedCard
+        self.scannedMrzCode = scannedMrzCode
     }
 
     // MARK: - Vision-related
@@ -76,34 +80,37 @@ final class ImageAnalyzer {
         var creditCard = CreditCard(number: nil, name: nil, expireDate: nil)
         creditCard.parse(results: results)
         
-        var selectedCard = CreditCard()
+        var selectedCard = scannedCard
         // Name
         if let name = creditCard.name {
             let count = self.predictedCardInfo[.name(name), default: 0]
             self.predictedCardInfo[.name(name)] = count + 1
             if count > 2 {
-                selectedCard.name = name
+                selectedCard?.name = name
             }
         }
         // ExpireDate
-        if let date = creditCard.expireDate {
+        if let date = creditCard.expireDate,let year = date.year,let month = date.month {
             let count = self.predictedCardInfo[.expireDate(date), default: 0]
             self.predictedCardInfo[.expireDate(date)] = count + 1
-            if count > 2 {
-                selectedCard.expireDate = date
+            let comps = Calendar.current.dateComponents([.year, .month], from: Date())
+            if count > 2,comps.year! <= year,month >= comps.month! {
+                selectedCard?.expireDate = date
             }
         }
 
         // Number
         if let number = creditCard.number {
             let count = self.predictedCardInfo[.number(number), default: 0]
+            print("+++++++")
+            print(number)
             self.predictedCardInfo[.number(number)] = count + 1
-            if count > 2 {
-                selectedCard.number = number
+            if selectedCard?.number == nil,count > 2,creditCard.checkDigits(number) {
+                selectedCard?.number = number
             }
         }
 
-        if selectedCard.number != nil {
+        if selectedCard?.number != nil {
             self.delegate?.didFinishSuccess(with: selectedCard)
             self.delegate = nil
         }
@@ -122,8 +129,6 @@ final class ImageAnalyzer {
             else { continue }
             
             let string = candidate.string
-//            print(string)
-//            print(string.count)
             mrzScanData.checkMrz(string: string)
         }
         if !mrzScanData.captureFirst.isEmpty {
