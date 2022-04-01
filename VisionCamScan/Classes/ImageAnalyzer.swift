@@ -105,7 +105,7 @@ final class ImageAnalyzer {
             print("+++++++")
             print(number)
             self.predictedCardInfo[.number(number)] = count + 1
-            if selectedCard?.number == nil,count > 2,creditCard.checkDigits(number) {
+            if count > 2,creditCard.checkDigits(number) {
                 selectedCard?.number = number
             }
         }
